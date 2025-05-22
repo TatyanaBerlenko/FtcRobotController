@@ -64,11 +64,13 @@ jobs:
           </ul>
           EOF
           touch $REPORTS/.nojekyll
+        continue-on-error: true
 
       - name: Upload Pages artefact
         uses: actions/upload-pages-artifact@v3
         with:
           path: pages
+        continue-on-error: true
 
       # ───── APK artefact ────────────────────────────────────────────────────────
       - name: Upload debug APK
@@ -76,6 +78,7 @@ jobs:
         with:
           name: FtcRobotController-debug.apk
           path: FtcRobotController/build/outputs/apk/debug/FtcRobotController-debug.apk
+        continue-on-error: true
 
   # ───── Publish reports to GitHub Pages ─────────────────────────────────────────
   deploy_pages:
