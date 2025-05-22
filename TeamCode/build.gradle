@@ -61,7 +61,6 @@ spotbugs {
 tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
     classDirs  = files(android.sourceSets.main.java.srcDirs)
     sourceDirs = files(android.sourceSets.main.java.srcDirs)
-    omitVisitors = ['RMI_INTERFACES']
     reports {
         html.required.set(true)
         html.outputLocation.set(file("$buildDir/reports/spotbugs/debug.html"))
