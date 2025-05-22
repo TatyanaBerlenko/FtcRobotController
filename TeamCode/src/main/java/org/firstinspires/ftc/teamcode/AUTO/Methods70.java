@@ -125,12 +125,12 @@ public class Methods70 extends LinearOpMode {
 
     }
 
-    public void test() {
-        String a = new String("hello");
-        if (a == "hello") {
-            System.out.println("Bug!");
-        }
-    }
+//    public void test() {
+//        String a = new String("hello");
+//        if (a == "hello") {
+//            System.out.println("Bug!");
+//        }
+//    }
 
     public void driveRotate(double rotateSpeed, double angle) {
         imu.resetYaw();
