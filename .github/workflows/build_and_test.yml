@@ -1,4 +1,4 @@
-name: Android CI
+name: FTC Android CI
 
 on:
   push:
@@ -8,49 +8,75 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  pages: write        # для gh-pages
+  id-token: write     # OIDC – deploy-pages
 
 jobs:
   build_and_analyze:
-    name: Build, Analyze & Upload Pages Artifact
+    name: Build APK  +  Static Analysis  +  Upload reports
     runs-on: ubuntu-latest
+
     steps:
+      # ───── Source code ──────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run static analysis and build reports
-        run: |
-          rm -rf app/build/outputs/apk
-          rm -rf app/build/outputs/bundle
-          ./gradlew clean \
-            checkstyleDebug spotbugsDebug lintDebug \
-            assembleDebug
+      # ───── Toolchain ───────────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-      - name: Upload reports for GitHub Pages
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licences
+        run: yes | sdkmanager --licenses
+
+      # ───── Build & Static analysis ─────────────────────────────────────────────
+      - name: Clean, analyse, assemble
+        run: |
+          ./gradlew clean \
+            :TeamCode:checkstyleDebug :TeamCode:spotbugsDebug \
+            :FtcRobotController:lintDebug \
+            :FtcRobotController:assembleDebug
+
+      # ───── Pack reports for GitHub Pages ───────────────────────────────────────
+      - name: Collect HTML reports
+        run: |
+          REPORTS=pages
+          mkdir -p $REPORTS
+          cp -r TeamCode/build/reports              $REPORTS/TeamCode
+          cp -r FtcRobotController/build/reports    $REPORTS/FtcRobotController
+
+          cat > $REPORTS/index.html <<'EOF'
+          <!doctype html><html lang="en"><meta charset="utf-8">
+          <h1>FTC Android CI Reports</h1>
+          <ul>
+            <li><a href="FtcRobotController/lint-results-debug.html">Lint (app)</a></li>
+            <li><a href="TeamCode/checkstyle/debug.html">Checkstyle (TeamCode)</a></li>
+            <li><a href="TeamCode/spotbugs/debug.html">SpotBugs (TeamCode)</a></li>
+          </ul>
+          EOF
+          touch $REPORTS/.nojekyll
+
+      - name: Upload Pages artefact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: app/build/reports
-      
-      - name: Create Pages index and disable Jekyll
-        run: |
-          cat <<EOF > app/build/reports/index.html
-          <!DOCTYPE html>
-          <html lang="ru">
-          <head><meta charset="utf-8"><title>Reports</title></head>
-          <body>
-            <h1>Android CI Reports</h1>
-            <ul>
-              <li><a href="lint-results-debug.html">Lint Report</a></li>
-              <li><a href="checkstyle/debug.html">Checkstyle</a></li>
-              <li><a href="spotbugs/debug.html">SpotBugs</a></li>
-            </ul>
-          </body>
-          </html>
-          EOF
-          touch app/build/reports/.nojekyll
+          path: pages
 
+      # ───── APK artefact ────────────────────────────────────────────────────────
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FtcRobotController-debug.apk
+          path: FtcRobotController/build/outputs/apk/debug/FtcRobotController-debug.apk
 
+  # ───── Publish reports to GitHub Pages ─────────────────────────────────────────
   deploy_pages:
     name: Deploy to GitHub Pages
     needs: build_and_analyze
@@ -61,37 +87,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
-
-
-
-  build_apk:
-    name: Build APK
-    needs: build_and_analyze
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android SDK Licenses
-        run: echo y | sdkmanager --licenses
-
-      - name: Build APK
-        run: ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug.apk
-          path: app/build/outputs/apk/debug/app-debug.apk
