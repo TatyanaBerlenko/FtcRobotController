@@ -38,22 +38,33 @@ jobs:
         run: yes | sdkmanager --licenses
 
       # ───── Build & Static analysis ─────────────────────────────────────────────
-      - name: Clean, analyse, assemble
-        run: |
-          ./gradlew clean \
-            :TeamCode:checkstyleDebug :TeamCode:spotbugsDebug \
-            :FtcRobotController:lintDebug \
-            :FtcRobotController:assembleDebug
-        continue-on-error: true
+      - name: Run SpotBugs
+        run: ./gradlew :TeamCode:spotbugsDebug || true
 
-      # ───── Pack reports for GitHub Pages ───────────────────────────────────────
+      - name: Run Checkstyle
+        run: ./gradlew :TeamCode:checkstyleDebug || true
+
+      - name: Run Lint
+        run: ./gradlew :FtcRobotController:lintDebug || true
+
+      - name: Assemble Debug APK
+        run: ./gradlew :FtcRobotController:assembleDebug
+
       - name: Collect HTML reports
+        if: always()
         run: |
           REPORTS=pages
           mkdir -p $REPORTS
-          cp -r TeamCode/build/reports              $REPORTS/TeamCode
-          cp -r FtcRobotController/build/reports    $REPORTS/FtcRobotController
+          mkdir -p $REPORTS/TeamCode $REPORTS/FtcRobotController
+          
 
+          if [ -d TeamCode/build/reports ]; then
+            cp -r TeamCode/build/reports $REPORTS/TeamCode
+          fi
+          if [ -d FtcRobotController/build/reports ]; then
+            cp -r FtcRobotController/build/reports $REPORTS/FtcRobotController
+          fi
+          
           cat > $REPORTS/index.html <<'EOF'
           <!doctype html><html lang="en"><meta charset="utf-8">
           <h1>FTC Android CI Reports</h1>
@@ -64,6 +75,7 @@ jobs:
           </ul>
           EOF
           touch $REPORTS/.nojekyll
+
 
       - name: Upload Pages artefact
         uses: actions/upload-pages-artifact@v3
