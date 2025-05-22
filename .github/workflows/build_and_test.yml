@@ -1,0 +1,99 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read            # чтобы checkout работал
+  pages: write              # для deploy-pages
+  id-token: write           # очень важно для OIDC
+
+jobs:
+  build_and_analyze:
+    name: Build, Analyze & Upload Pages Artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run static analysis and build reports
+        run: |
+          rm -rf app/build/outputs/apk
+          rm -rf app/build/outputs/bundle
+          ./gradlew clean \
+            checkstyleDebug spotbugsDebug lintDebug \
+            assembleDebug
+
+      # вот этот шаг — сразу упаковываем папку с HTML-отчетами
+      - name: Upload reports for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: app/build/reports
+      
+      - name: Create Pages index and disable Jekyll
+        run: |
+          cat <<EOF > app/build/reports/index.html
+          <!DOCTYPE html>
+          <html lang="ru">
+          <head><meta charset="utf-8"><title>Reports</title></head>
+          <body>
+            <h1>Android CI Reports</h1>
+            <ul>
+              <li><a href="lint-results-debug.html">Lint Report</a></li>
+              <li><a href="checkstyle/debug.html">Checkstyle</a></li>
+              <li><a href="spotbugs/debug.html">SpotBugs</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+          # Отключаем Jekyll, чтобы не было проблем с обработкой файлов
+          touch app/build/reports/.nojekyll
+
+
+  deploy_pages:
+    name: Deploy to GitHub Pages
+    needs: build_and_analyze
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+
+
+  build_apk:
+    name: Build APK
+    needs: build_and_analyze
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK Licenses
+        run: echo y | sdkmanager --licenses
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
