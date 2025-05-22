@@ -5,17 +5,17 @@ plugins {
 }
 
 
-apply from: '../build.dependencies.gradle'   // остаётся – в нём Maven-координаты SDK
+apply from: '../build.dependencies.gradle'
 
 android {
     namespace 'org.firstinspires.ftc.teamcode'
 
-    compileSdk 29
+    compileSdk 36
     buildToolsVersion '29.0.3'
 
     defaultConfig {
         minSdk 24
-        targetSdk 29
+        targetSdk 36
         versionCode 1
         versionName '1.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -43,10 +43,8 @@ android {
 }
 
 dependencies {
-    /* ► Главное: только APK-модуль-обёртка */
     implementation project(':FtcRobotController')
 
-    /* ► При желании можно добавить сторонние библиотеки */
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'org.apache.commons:commons-compress:1.26.0'
@@ -56,7 +54,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
 
-/* SpotBugs & Checkstyle блоки – без изменений (как в предыдущей версии) */
 spotbugs {
     toolVersion = '4.9.3'
     ignoreFailures = false

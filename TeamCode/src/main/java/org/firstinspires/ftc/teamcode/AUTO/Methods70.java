@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
-@Autonomous(name="Methods70%", group="Robot")
+@Autonomous(name = "Methods70%", group = "Robot")
 public class Methods70 extends LinearOpMode {
     private DcMotor LeftFront = null;
     private DcMotor LeftBack = null;
@@ -33,19 +33,10 @@ public class Methods70 extends LinearOpMode {
     static final double WHEEL_DIAMETER = 10.4;
     static final double PULSES = 537.7;
     static final double PI = 3.1415;
-    static final double PULSES_PER_CM = PULSES/(WHEEL_DIAMETER*PI);
+    static final double PULSES_PER_CM = PULSES / (WHEEL_DIAMETER * PI);
     TouchSensor touchSensor;
     TouchSensor touchSensorHor;
     //TouchSensor touchSensorHor;
-
-
-
-
-
-
-
-
-
 
 
     @Override
@@ -132,11 +123,9 @@ public class Methods70 extends LinearOpMode {
         driveSide(-1, 20);//Drive sideways
 
 
-
-
     }
-    public void driveRotate(double rotateSpeed, double angle)
-    {
+
+    public void driveRotate(double rotateSpeed, double angle) {
         imu.resetYaw();
 
         while (opModeIsActive() && Math.abs(getHeading()) < angle) {
@@ -332,13 +321,13 @@ public class Methods70 extends LinearOpMode {
     }
     //___________________________Diagonal*____________________________________//
 
-    public void VerSliderPosition(double position, double power){
+    public void VerSliderPosition(double position, double power) {
         Vertical.setTargetPosition((int) position);
         Vertical.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Vertical.setPower(power);
     }
 
-    public void VerSliderZero(double power){
+    public void VerSliderZero(double power) {
 
         while (opModeIsActive() && !touchSensor.isPressed()) {
             Vertical.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -349,13 +338,13 @@ public class Methods70 extends LinearOpMode {
         Vertical.setPower(0);
     }
 
-    public void HorSliderPosition(double position, double power){
+    public void HorSliderPosition(double position, double power) {
         Horizontal.setTargetPosition((int) position);
         Horizontal.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Horizontal.setPower(power);
     }
 
-    public void HorSliderZero(double power){
+    public void HorSliderZero(double power) {
 
         while (opModeIsActive() && !touchSensorHor.isPressed()) {
             Horizontal.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -366,8 +355,7 @@ public class Methods70 extends LinearOpMode {
         Horizontal.setPower(0);
     }
 
-    public double getHeading()
-    {
+    public double getHeading() {
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
         return orientation.getYaw(AngleUnit.DEGREES);
     }
