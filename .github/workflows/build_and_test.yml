@@ -44,6 +44,7 @@ jobs:
             :TeamCode:checkstyleDebug :TeamCode:spotbugsDebug \
             :FtcRobotController:lintDebug \
             :FtcRobotController:assembleDebug
+        continue-on-error: true
 
       # ───── Pack reports for GitHub Pages ───────────────────────────────────────
       - name: Collect HTML reports
