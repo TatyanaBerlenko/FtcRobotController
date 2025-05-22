@@ -7,9 +7,9 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: read            # чтобы checkout работал
-  pages: write              # для deploy-pages
-  id-token: write           # очень важно для OIDC
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build_and_analyze:
@@ -27,7 +27,6 @@ jobs:
             checkstyleDebug spotbugsDebug lintDebug \
             assembleDebug
 
-      # вот этот шаг — сразу упаковываем папку с HTML-отчетами
       - name: Upload reports for GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
@@ -49,7 +48,6 @@ jobs:
           </body>
           </html>
           EOF
-          # Отключаем Jekyll, чтобы не было проблем с обработкой файлов
           touch app/build/reports/.nojekyll
 
 
