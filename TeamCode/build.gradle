@@ -5,44 +5,34 @@
  */
 
 plugins {
-    id 'com.android.library'          // остаётся библиотекой внутри RobotController
-    id 'com.github.spotbugs'          // статический анализ
-    id 'checkstyle'                   // код-стайл
+    id 'com.android.library'
+    id 'com.github.spotbugs'
+    id 'checkstyle'
 }
 
-/*
- * Подтягиваем общие настройки из репозитория FTC-SDK
- *  – compileSdkVersion 29, signingConfig, kotlin-опции и пр.
- */
-apply from: '../build.common.gradle'
-apply from: '../build.dependencies.gradle'
+apply from: '../build.dependencies.gradle'   // зависимости FTC-SDK
 
 android {
     namespace 'org.firstinspires.ftc.teamcode'
 
-    /*  При желании можно “поднять” compileSdk/targetSdk до 36.
-        Если оставите 29 (как в SDK), просто закомментируйте блок compileSdk…   */
-    compileSdk 36
+    /* оставляем те же уровни, что и в FtcRobotController */
+    compileSdk 29
     buildToolsVersion '29.0.3'
 
     defaultConfig {
         minSdk 24
-        targetSdk 36
-        /* versionCode / versionName библиотеке необязательны,
-           но Gradle не ругается, если они заданы */
+        targetSdk 29
         versionCode 1
         versionName '1.0'
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     packagingOptions {
-        jniLibs {
-            useLegacyPackaging = true   // нужно для .so библиотек RobotCore
-        }
+        jniLibs.useLegacyPackaging = true
     }
 
     buildTypes {
-        debug { debuggable true }
+        debug   { debuggable true }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
@@ -55,29 +45,26 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    lint {
-        disable 'Instantiatable'        // штатное предупреждение FTC-SDK
-    }
+    lint { disable 'Instantiatable' }
 }
 
 dependencies {
-    /* Подключаем APK-обёртку, чтобы видеть все классы RobotCore во время компиляции */
-    implementation project(':FtcRobotController')
+    implementation project(':FtcRobotController')   // весь RobotCore «приходит» через APK-обёртку
 
-    /* FTC-модули (можно оставить project(...) или перейти на Maven-координаты) */
+    /* FTC SDK модули из исходников (можно заменить на Maven, если предпочитаете) */
     implementation project(':RobotCore')
     implementation project(':Hardware')
     implementation project(':FtcCommon')
     implementation project(':Inspection')
     implementation project(':Blocks')
 
-    /* + сторонние / AndroidX библиотеки, если нужны именно вашему коду */
+    /* сторонние библиотеки — примеры */
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'org.apache.commons:commons-compress:1.26.0'
     implementation 'androidx.annotation:annotation:1.6.0'
 
-    testImplementation     'junit:junit:4.13.2'
+    testImplementation       'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
@@ -90,42 +77,34 @@ spotbugs {
 tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
     classDirs  = files(android.sourceSets.main.java.srcDirs)
     sourceDirs = files(android.sourceSets.main.java.srcDirs)
-    reports {
-        xml.required.set(false)
-        html.required.set(true)
-    }
+    reports    { xml.required.set(false); html.required.set(true) }
 }
 
 /* ---------- Checkstyle ---------- */
 checkstyle {
     toolVersion = '10.23.1'
-    /*  Путь к конфигу можете изменить:
-        — сохранить свой в TeamCode/config/…
-        — либо ссылаться на общий в корне репо  */
-    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+    configFile  = file("${rootDir}/config/checkstyle/checkstyle.xml")
 }
 
 tasks.register('checkstyleDebug', Checkstyle) {
-    group       = 'verification'
-    description = 'Runs Checkstyle on Debug sources'
-    classpath   = files()
-    source      = files(android.sourceSets.main.java.srcDirs,
+    group 'verification'; description 'Runs Checkstyle on Debug sources'
+    classpath = files()
+    source    = files(android.sourceSets.main.java.srcDirs,
             android.sourceSets.debug.java.srcDirs)
-    configFile  = checkstyle.configFile
+    configFile = checkstyle.configFile
     reports { html.required = true; xml.required = false }
 }
 
 tasks.register('checkstyleRelease', Checkstyle) {
-    group       = 'verification'
-    description = 'Runs Checkstyle on Release sources'
-    classpath   = files()
-    source      = files(android.sourceSets.main.java.srcDirs,
+    group 'verification'; description 'Runs Checkstyle on Release sources'
+    classpath = files()
+    source    = files(android.sourceSets.main.java.srcDirs,
             android.sourceSets.debug.java.srcDirs)
-    configFile  = checkstyle.configFile
+    configFile = checkstyle.configFile
     reports { html.required = true; xml.required = false }
 }
 
-/* ---------- Ставим проверки перед сборкой ---------- */
+/* ---------- проверки перед сборкой ---------- */
 afterEvaluate {
     tasks.named('assembleDebug').configure {
         dependsOn 'checkstyleDebug', 'spotbugsDebug'
