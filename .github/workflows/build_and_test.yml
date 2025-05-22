@@ -86,8 +86,8 @@ jobs:
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: FtcRobotController-debug.apk
-          path: FtcRobotController/build/outputs/apk/debug/FtcRobotController-debug.apk
+          name: FtcRobotController-debug-apks
+          path: FtcRobotController/build/outputs/apk/debug/*.apk
 
   # ───── Publish reports to GitHub Pages ─────────────────────────────────────────
   deploy_pages:
