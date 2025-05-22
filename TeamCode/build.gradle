@@ -1,21 +1,15 @@
-/*
- * TeamCode/build.gradle
- * — Вариант 2025-05-22
- * — JDK 17, AGP 7.4.x, FTC-SDK 9.x
- */
-
 plugins {
     id 'com.android.library'
     id 'com.github.spotbugs'
     id 'checkstyle'
 }
 
-apply from: '../build.dependencies.gradle'   // зависимости FTC-SDK
+
+apply from: '../build.dependencies.gradle'   // остаётся – в нём Maven-координаты SDK
 
 android {
     namespace 'org.firstinspires.ftc.teamcode'
 
-    /* оставляем те же уровни, что и в FtcRobotController */
     compileSdk 29
     buildToolsVersion '29.0.3'
 
@@ -49,27 +43,20 @@ android {
 }
 
 dependencies {
-    implementation project(':FtcRobotController')   // весь RobotCore «приходит» через APK-обёртку
+    /* ► Главное: только APK-модуль-обёртка */
+    implementation project(':FtcRobotController')
 
-    /* FTC SDK модули из исходников (можно заменить на Maven, если предпочитаете) */
-    implementation project(':RobotCore')
-    implementation project(':Hardware')
-    implementation project(':FtcCommon')
-    implementation project(':Inspection')
-    implementation project(':Blocks')
-
-    /* сторонние библиотеки — примеры */
+    /* ► При желании можно добавить сторонние библиотеки */
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'org.apache.commons:commons-compress:1.26.0'
-    implementation 'androidx.annotation:annotation:1.6.0'
 
     testImplementation       'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
 
-/* ---------- SpotBugs ---------- */
+/* SpotBugs & Checkstyle блоки – без изменений (как в предыдущей версии) */
 spotbugs {
     toolVersion = '4.9.3'
     ignoreFailures = false
@@ -77,10 +64,9 @@ spotbugs {
 tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
     classDirs  = files(android.sourceSets.main.java.srcDirs)
     sourceDirs = files(android.sourceSets.main.java.srcDirs)
-    reports    { xml.required.set(false); html.required.set(true) }
+    reports { xml.required.set(false); html.required.set(true) }
 }
 
-/* ---------- Checkstyle ---------- */
 checkstyle {
     toolVersion = '10.23.1'
     configFile  = file("${rootDir}/config/checkstyle/checkstyle.xml")
@@ -104,7 +90,6 @@ tasks.register('checkstyleRelease', Checkstyle) {
     reports { html.required = true; xml.required = false }
 }
 
-/* ---------- проверки перед сборкой ---------- */
 afterEvaluate {
     tasks.named('assembleDebug').configure {
         dependsOn 'checkstyleDebug', 'spotbugsDebug'
