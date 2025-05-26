@@ -53,28 +53,26 @@ jobs:
       - name: Collect HTML reports
         if: always()
         run: |
-          REPORTS=pages
-          mkdir -p $REPORTS
-          mkdir -p $REPORTS/TeamCode $REPORTS/FtcRobotController
-          
+          REPORTS_DIR=pages
+          mkdir -p "$REPORTS_DIR"
 
-          if [ -d TeamCode/build/reports ]; then
-            cp -r TeamCode/build/reports $REPORTS/TeamCode
-          fi
-          if [ -d FtcRobotController/build/reports ]; then
-            cp -r FtcRobotController/build/reports $REPORTS/FtcRobotController
-          fi
-          
-          cat > $REPORTS/index.html <<'EOF'
+          # Копируем содержимое, а не папку reports целиком
+          for m in TeamCode FtcRobotController; do
+            if [ -d "$m/build/reports" ]; then
+              rsync -a "$m/build/reports/" "$REPORTS_DIR/$m/"
+            fi
+          done
+
+          cat > "$REPORTS_DIR/index.html" <<'EOF'
           <!doctype html><html lang="en"><meta charset="utf-8">
           <h1>FTC Android CI Reports</h1>
           <ul>
             <li><a href="FtcRobotController/lint-results-debug.html">Lint (app)</a></li>
-            <li><a href="TeamCode/checkstyle/debug.html">Checkstyle (TeamCode)</a></li>
-            <li><a href="TeamCode/spotbugs/debug.html">SpotBugs (TeamCode)</a></li>
+            <li><a href="TeamCode/checkstyleDebug.html">Checkstyle (TeamCode)</a></li>
+            <li><a href="TeamCode/spotbugsDebug.html">SpotBugs (TeamCode)</a></li>
           </ul>
           EOF
-          touch $REPORTS/.nojekyll
+          touch "$REPORTS_DIR/.nojekyll"
 
 
       - name: Upload Pages artefact
