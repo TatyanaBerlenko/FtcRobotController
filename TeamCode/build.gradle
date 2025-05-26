@@ -62,6 +62,7 @@ tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
     classDirs  = files(android.sourceSets.main.java.srcDirs)
     sourceDirs = files(android.sourceSets.main.java.srcDirs)
     reports {
+        xml.required.set(false)
         html.required.set(true)
         html.outputLocation.set(file("$buildDir/reports/spotbugs/debug.html"))
     }
@@ -70,6 +71,16 @@ tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
 checkstyle {
     toolVersion = '10.23.1'
     configFile  = file("${rootDir}/config/checkstyle/checkstyle.xml")
+}
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        // Отключаем XML — он вам не нужен
+        xml.required.set(false)
+        // Включаем HTML
+        html.required.set(true)
+        // Подгоняем имя под index.html
+        html.outputLocation.set(file("$buildDir/reports/checkstyle/debug.html"))
+    }
 }
 
 tasks.register('checkstyleDebug', Checkstyle) {
